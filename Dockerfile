@@ -35,6 +35,7 @@ FROM mysql:8.0.35
 
 LABEL maintainer="Stefan Neuhaus <stefan@stefanneuhaus.org>"
 
+# these ENV variables will used by MYSQL for startup
 ENV MYSQL_DATABASE=dependencycheck \
     MYSQL_RANDOM_ROOT_PASSWORD=true \
     MYSQL_ONETIME_PASSWORD=true \
@@ -59,12 +60,8 @@ RUN set -ex && \
 
 COPY --from=supercronic /usr/local/bin/supercronic /usr/local/bin/
 
-RUN set -ex && \
-    cat /dev/urandom | tr -dc _A-Za-z0-9 | head -c 32 >/dependencycheck/dc-update.pwd; \
-    chmod 400 /dependencycheck/dc-update.pwd; \
-    sed -i "s/<DC_UPDATE_PASSWORD>/$(cat /dependencycheck/dc-update.pwd)/" /dependencycheck/build.gradle; \
-    sed -i "s/<DC_UPDATE_PASSWORD>/$(cat /dependencycheck/dc-update.pwd)/" /docker-entrypoint-initdb.d/initialize_security.sql; \
-    sed -i "s/<MYSQL_USER>/${MYSQL_USER}/" /docker-entrypoint-initdb.d/initialize_security.sql
+VOLUME /var/lib/mysql
+VOLUME /var/lib/owasp-db-cache
 
 EXPOSE 3306
 
