@@ -23,3 +23,5 @@ runLocalBuildAndStart: buildImageArm64
 runLocalStop:
 	docker stop owasp-db
 
+rmVolumeData:
+	docker volume rm owasp-config owasp-db
