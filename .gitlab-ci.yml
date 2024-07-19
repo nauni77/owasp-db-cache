@@ -1,0 +1,82 @@
+stages:
+  - .pre
+  - package
+  - test
+
+# source of this code: https://gitlab.com/guided-explorations/devops-patterns/utterly-automated-versioning/
+define next version:
+  stage: .pre
+  image:
+    name: nauni1977/buildtools-ubuntu:latest
+  #    entrypoint: ['']
+  script:
+    - |
+      gitversion /output buildserver
+      
+      # We could just collect the output file gitversion.properties (with artifacts:report:dotenv: gitversion.properties as it is already in DOTENV format,
+      # however it contains ~33 variables which unnecessarily consumes many of the 50 max DOTENV variables of the free GitLab version.
+      # Limits are higher for licensed editions, see https://docs.gitlab.com/ee/ci/yaml/artifacts_reports.html#artifactsreportsdotenv
+      grep 'GitVersion_LegacySemVer='                   gitversion.properties >> version.env
+      grep 'GitVersion_SemVer='                         gitversion.properties >> version.env
+      grep 'GitVersion_FullSemVer='                     gitversion.properties | sed -r 's/\+/_/g' >> version.env
+      grep 'GitVersion_Major='                          gitversion.properties >> version.env
+      grep 'GitVersion_Minor='                          gitversion.properties >> version.env
+      grep 'GitVersion_Patch='                          gitversion.properties >> version.env
+      grep 'GitVersion_MajorMinorPatch='                gitversion.properties >> version.env
+      grep 'GitVersion_CommitsSinceVersionSource='      gitversion.properties >> version.env
+      
+      cat version.env
+  
+  # artifacts are only moved to the next stage - not to other jobs depending on this job at same stage
+  artifacts:
+    paths:
+      - version.env
+    reports:
+      dotenv: version.env
+
+build image:
+  stage: package
+  dependencies:
+    - define next version
+  ## run only if the build is triggered by schedule - maybe one time each day ... not at every commit
+  #  rules:
+  #    - if: $CI_PIPELINE_SOURCE == "schedule"
+  image: docker:latest
+  services:
+    - docker
+  variables:
+    TEST_VAR_DOCKER_DRIVER: test_var_overlay
+  before_script:
+    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin
+  script:
+    - cat version.env
+    - echo "GitVersion_LegacySemVer=${GitVersion_LegacySemVer}"
+    - VERSION=${GitVersion_LegacySemVer}
+    - IMAGE_NAME=nauni1977/owasp-db-cache
+    - BUILD_DATE_BASH=$(date)
+    - echo "${BUILD_DATE_BASH}"
+    - docker buildx create --use
+    - docker buildx ls
+    - docker buildx build --build-arg BUILD_DATE="${BUILD_DATE_BASH}" --platform linux/arm64,linux/amd64 --push --tag ${IMAGE_NAME}:latest --tag ${IMAGE_NAME}:${VERSION} .
+    - docker logout
+
+#test without image:
+#  stage: test
+#  image: python:3.10
+#  script:
+#    - python --version
+#    - pip --version
+#    - pip install pytest
+#    - pytest --version
+#    - echo "do some complex stuff now"
+
+#test with image:
+#  stage: test
+#  dependencies:
+#    - build image
+#  image: $CI_REGISTRY_IMAGE
+#  script:
+#    - python --version
+#    - pip --version
+#    - pytest --version
+#    - echo "do some complex stuff now"
