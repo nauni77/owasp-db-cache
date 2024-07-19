@@ -1,8 +1,9 @@
+#FROM oraclelinux:9-slim AS supercronic
 FROM --platform=linux/amd64 alpine:latest AS supercronic-amd64
 
-ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.29/supercronic-linux-amd64 \
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.30/supercronic-linux-amd64 \
     SUPERCRONIC=supercronic-linux-amd64 \
-    SUPERCRONIC_SHA1SUM=cd48d45c4b10f3f0bfdd3a57d054cd05ac96812b
+    SUPERCRONIC_SHA1SUM=9f27ad28c5c57cd133325b2a66bba69ba2235799
 
 RUN set -ex  \
     && apk add curl \
@@ -31,7 +32,7 @@ RUN set -ex  \
 FROM supercronic-${TARGETARCH} AS supercronic
 
 
-FROM mysql:8.0.35
+FROM mysql:8.4.1
 
 LABEL maintainer="Stefan Neuhaus <stefan@stefanneuhaus.org>"
 
@@ -57,11 +58,17 @@ RUN set -ex && \
     echo "0/2 * * * *  /dependencycheck/update.sh" > /dependencycheck/database-update-schedule; \
     chown --recursive mysql:mysql /dependencycheck
 
-
 COPY --from=supercronic /usr/local/bin/supercronic /usr/local/bin/
 
 VOLUME /var/lib/mysql
 VOLUME /var/lib/owasp-db-cache
+
+#RUN set -ex && \
+#    cat /dev/urandom | tr -dc _A-Za-z0-9 | head -c 32 >/dependencycheck/dc-update.pwd; \
+#    chmod 400 /dependencycheck/dc-update.pwd; \
+#    sed -i "s/<DC_UPDATE_PASSWORD>/$(cat /dependencycheck/dc-update.pwd)/" /dependencycheck/build.gradle; \
+#    sed -i "s/<DC_UPDATE_PASSWORD>/$(cat /dependencycheck/dc-update.pwd)/" /docker-entrypoint-initdb.d/initialize_security.sql; \
+#    sed -i "s/<MYSQL_USER>/${MYSQL_USER}/" /docker-entrypoint-initdb.d/initialize_security.sql
 
 EXPOSE 3306
 

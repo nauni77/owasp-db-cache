@@ -29,7 +29,7 @@ If you have one, start your Docker container with `-e NVD_API_KEY=<Your API key 
 ### Analysis Clients
 
 All kinds of analysis clients are supported: Gradle, Maven, Ant, Jenkins, CLI. Apply the following changes to your build file:
-- add buildscript dependency for `com.mysql:mysql-connector-j:8.2.0`
+- add buildscript dependency for `com.mysql:mysql-connector-j`
 - disable database updates triggered by your project: `autoUpdate = false`
 - add database connection parameters: `data { ... }`
 
@@ -40,8 +40,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.owasp:dependency-check-gradle:9.0.6'
-        classpath 'com.mysql:mysql-connector-j:8.2.0'
+        classpath 'org.owasp:dependency-check-gradle:10.0.2'
+        classpath 'com.mysql:mysql-connector-j:8.4.0'
     }
 }
 
@@ -71,17 +71,18 @@ Updates of the Database are triggered every 2 minutes. The initial update can ta
 
 ## Compatibility
 
-|             Client |  Server |
-|-------------------:|--------:|
-|         `>= 8.0.0` | `9.0.8` |
-|         `>= 8.0.0` | `8.0.0` |
-|            `7.4.4` | `7.4.4` |
-|   `[6.3.0; 7.4.3]` | `6.5.3` |
-|   `[6.1.3; 6.2.2]` | `6.2.0` |
-|   `[6.0.0; 6.1.1]` | `6.0.2` |
-| `[5.0.0; 5.3.2.1]` | `5.0.0` |
-|   `[1.4.1; 4.0.2]` | `4.0.2` |
-|          `< 1.4.1` |    n.a. |
+|             Client |   Server |
+|-------------------:|---------:|
+|         `>= 6.3.0` | `10.0.2` |
+|         `>= 6.3.0` |  `9.0.8` |
+|         `>= 6.3.0` |  `8.0.0` |
+|         `>= 6.3.0` |  `7.4.4` |
+|   `[6.3.0; 7.4.3]` |  `6.5.3` |
+|   `[6.1.3; 6.2.2]` |  `6.2.0` |
+|   `[6.0.0; 6.1.1]` |  `6.0.2` |
+| `[5.0.0; 5.3.2.1]` |  `5.0.0` |
+|   `[1.4.1; 4.0.2]` |  `4.0.2` |
+|          `< 1.4.1` |     n.a. |
 
 The server is not designed for updating its database structure manually. If you update your client to a version which is incompatible with your server version, 
 you should just throw away the old server container and start a new one from a compatible image from scratch.
