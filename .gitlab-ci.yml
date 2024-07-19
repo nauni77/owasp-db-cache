@@ -47,7 +47,7 @@ build image:
   variables:
     TEST_VAR_DOCKER_DRIVER: test_var_overlay
   before_script:
-    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin
+    - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USER" --password-stdin
   script:
     - cat version.env
     - echo "GitVersion_LegacySemVer=${GitVersion_LegacySemVer}"
