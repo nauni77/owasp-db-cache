@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# update with cronjob every hour
+UPDATE_INTERVALL=${UPDATE_INTERVALL:="0 * * * *"}
+echo "UPDATE_INTERVALL is set to: ${UPDATE_INTERVALL}"
+
 ### warning if no NVD_API_KEY is set
 if [ -z "${NVD_API_KEY}" ]; then
   echo "--------------------------------------------------------------------------------"
@@ -92,5 +96,21 @@ sed -i "s/<DC_UPDATE_PASSWORD>/$(cat ${PASSWORD_FILE_DC_UPDATE_USER})/" /depende
 sed -i "s/<DC_UPDATE_PASSWORD>/$(cat ${PASSWORD_FILE_DC_UPDATE_USER})/" /docker-entrypoint-initdb.d/initialize_security.sql
 sed -i "s/<MYSQL_USER>/${MYSQL_USER}/" /docker-entrypoint-initdb.d/initialize_security.sql
 
-supercronic /dependencycheck/database-update-schedule &
-/usr/local/bin/docker-entrypoint.sh --user=root
+echo "starting mysql database"
+/usr/local/bin/docker-entrypoint.sh --user=root &
+
+echo "configure the db update intervall : ${UPDATE_INTERVALL}"
+echo "${UPDATE_INTERVALL}  /dependencycheck/update.sh" > /dependencycheck/database-update-schedule
+
+while ! (mysqladmin ping)
+do
+   sleep 1
+   echo "waiting for mysql to be up and running ..."
+done
+
+echo "start first update of OWASP_DB => $(date)"
+/dependencycheck/update.sh
+echo "finished first update of OWASP_DB => $(date)"
+
+supercronic /dependencycheck/database-update-schedule
+
