@@ -102,11 +102,14 @@ echo "starting mysql database"
 echo "configure the db update intervall : ${UPDATE_INTERVALL}"
 echo "${UPDATE_INTERVALL}  /dependencycheck/update.sh" > /dependencycheck/database-update-schedule
 
-while ! (mysqladmin ping)
+# TODO : wait until the update scripts are executed????!?? This only waits until db is running!
+while ! (mysqladmin ping --silent)
 do
    sleep 1
    echo "waiting for mysql to be up and running ..."
 done
+echo "MYSQL is running - waiting additional 3 seconds to make sure the sql scripts are executed"
+sleep 3
 
 echo "start first update of OWASP_DB => $(date)"
 /dependencycheck/update.sh
