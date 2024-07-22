@@ -4,7 +4,7 @@
 
 RELEASE_VER=dev
 
-NVD_API_KEY=aac132db-0b5e-46cb-af91-efefc2f5a674
+NVD_API_KEY=""
 UPDATE_INTERVALL="0/5 * * * *"
 
 buildImageAmd64:
