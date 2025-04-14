@@ -16,9 +16,9 @@ RUN set -ex  \
 
 FROM --platform=linux/arm64 alpine:latest AS supercronic-arm64
 
-ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.29/supercronic-linux-arm64 \
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.33/supercronic-linux-arm64 \
     SUPERCRONIC=supercronic-linux-arm64 \
-    SUPERCRONIC_SHA1SUM=512f6736450c56555e01b363144c3c9d23abed4c
+    SUPERCRONIC_SHA1SUM=e0f0c06ebc5627e43b25475711e694450489ab00
 
 RUN set -ex  \
     && apk add curl \
